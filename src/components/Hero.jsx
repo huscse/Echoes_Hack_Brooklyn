@@ -131,8 +131,8 @@ export default function Hero() {
             animation: 'fadeUp .8s .7s ease forwards',
           }}
         >
-          Tap any location in Brooklyn. Hear what happened there — narrated by
-          the voice of someone who lived it.
+          Tap any location in New York City. Hear what happened there, narrated
+          by the voice of someone who lived it.
         </p>
 
         <div
@@ -292,10 +292,11 @@ export default function Hero() {
                   letterSpacing: '0.08em',
                 }}
               >
-                BEDFORD AVE, BROOKLYN
+                SANDS STREET, BROOKLYN NAVY YARD
               </div>
             </div>
 
+            {/* Story */}
             {/* Story */}
             <div style={{ padding: '1.25rem 1.5rem' }}>
               <div
@@ -311,13 +312,13 @@ export default function Hero() {
                   <div
                     style={{
                       fontFamily: "'DM Mono',monospace",
-                      fontSize: '0.65rem',
+                      fontSize: '0.6rem',
                       color: 'var(--gold)',
                       letterSpacing: '0.08em',
-                      marginBottom: '0.25rem',
+                      marginBottom: '0.2rem',
                     }}
                   >
-                    227 Bedford Ave, Williamsburg
+                    1940S
                   </div>
                   <div
                     style={{
@@ -327,7 +328,7 @@ export default function Hero() {
                       letterSpacing: '0.06em',
                     }}
                   >
-                    Est. 1887 · Williamsburg
+                    Man in his 60s, son of a Navy Yard worker
                   </div>
                 </div>
                 <div
@@ -356,6 +357,31 @@ export default function Hero() {
                   />
                 </div>
               </div>
+
+              <div
+                style={{
+                  fontFamily: "'Cormorant Garamond',serif",
+                  fontSize: '1.1rem',
+                  fontWeight: 300,
+                  color: 'var(--text)',
+                  marginBottom: '0.3rem',
+                }}
+              >
+                Nights on Sands Street
+              </div>
+
+              <div
+                style={{
+                  fontFamily: "'DM Mono',monospace",
+                  fontSize: '0.58rem',
+                  color: 'var(--text3)',
+                  letterSpacing: '0.04em',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                Sands Street, Brooklyn Navy Yard
+              </div>
+
               <div
                 style={{
                   fontSize: '1rem',
@@ -368,10 +394,12 @@ export default function Hero() {
                   paddingLeft: '1rem',
                 }}
               >
-                "I ran the pharmacy here for thirty-one years. Watched this
-                whole street change underneath me. In '77 when the lights went
-                out, people came here first — not the police, not the city. Me."
+                "My father got his first tattoo right here. Sands Street. Some
+                parlor between a bar and a gambling house, he said. The Navy
+                Yard gates were right down the block. Then Robert Moses came
+                through and. I don't know. Eighteen hundred families gone."
               </div>
+
               <div
                 ref={waveRef}
                 style={{
@@ -382,6 +410,7 @@ export default function Hero() {
                   marginBottom: '0.75rem',
                 }}
               />
+
               <div
                 style={{
                   display: 'flex',
@@ -399,7 +428,7 @@ export default function Hero() {
                 >
                   Voice:{' '}
                   <span style={{ color: 'var(--gold2)' }}>
-                    Elderly Caribbean man, 1970s
+                    Man in his 60s, Vinegar Hill
                   </span>
                 </div>
                 <div

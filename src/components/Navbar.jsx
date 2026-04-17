@@ -68,7 +68,7 @@ export default function Navbar() {
             textDecoration: 'none',
           }}
         >
-          Explore Brooklyn
+          Explore New York
         </Link>
       </div>
     </nav>

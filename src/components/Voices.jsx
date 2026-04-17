@@ -2,32 +2,32 @@
 
 const voices = [
   {
-    era: '1943 · Red Hook',
-    location: 'Brooklyn Navy Yard, Gate 4',
+    era: '1943 · Brooklyn Navy Yard',
+    location: 'Sands Street, Red Hook',
     quote:
-      '"We built seventeen ships in four years. Women on the floor, men overseas. Nobody told us we couldn\'t."',
+      '"My mother worked the Yard during the war. She was a mechanic, can you believe that. First time they ever hired women. She came home with grease on her hands and just... proud."',
     voice: 'Working-class woman, wartime Brooklyn',
   },
   {
-    era: '1977 · Bushwick',
-    location: 'Knickerbocker Ave',
+    era: '1969 · Greenwich Village',
+    location: 'Stonewall Inn, Christopher Street',
     quote:
-      '"The night the lights went out, something changed in this neighborhood. Some people took. Some people gave. I saw both."',
-    voice: 'Middle-aged Puerto Rican man, 1970s',
+      '"That night nobody planned anything. People were just tired. Tired of being treated like criminals for existing. And something broke open. Something that needed to break."',
+    voice: 'Young gay man, Lower Manhattan',
   },
   {
-    era: '1920 · Crown Heights',
-    location: 'Eastern Parkway',
+    era: '1920 · Harlem',
+    location: '125th Street, Manhattan',
     quote:
-      '"When I came from Kingston, this boulevard was the most beautiful thing I had ever seen. Still is, if you know where to look."',
-    voice: 'Jamaican immigrant, early 20th century',
+      '"You have to understand what it meant to walk down 125th Street then. Every face looked like yours. Every business, every doctor, every artist. We had built something real up here."',
+    voice: 'Jamaican immigrant, Harlem Renaissance',
   },
   {
-    era: '1989 · Bed-Stuy',
-    location: 'Fulton Street',
+    era: '1977 · South Bronx',
+    location: 'Hunts Point, Bronx',
     quote:
-      '"People think this block was only ever trouble. They don\'t know what we built here before the cameras showed up."',
-    voice: 'Young Black man, late 80s Brooklyn',
+      '"People only remember the fires. They do not talk about what we built in the middle of all that. The block associations. The music. Something new was being born right here."',
+    voice: 'Puerto Rican community organizer, 1970s Bronx',
   },
 ];
 

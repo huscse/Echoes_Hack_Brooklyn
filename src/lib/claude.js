@@ -15,6 +15,9 @@ ${research}
 Your task is to write something that sounds like a real person SPEAKING out loud, not writing. It should feel raw, unscripted, and natural, like someone telling you a story on their stoop.
 
 Rules:
+- Write with fragments and interruptions. Real speech is broken. "My mother worked here. The Yard. She never talked about it much." is better than "My mother worked at the Navy Yard and rarely discussed her experiences there."
+- Add one incomplete thought or trailing off moment. "I don't know. Something about the way it looked." or "You had to be there, I guess."
+- Never write more than two full sentences in a row without a fragment or short phrase breaking it up.
 - NEVER use em dashes (--) or hyphens used as dashes. Use commas or periods instead.
 - Write how people actually talk. Short sentences. Pauses. Repetition. Trailing thoughts.
 - ALWAYS mention the specific place by name (Brooklyn College, the Navy Yard, Fulton Street, etc.) at least once naturally in the story.

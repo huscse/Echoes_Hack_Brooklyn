@@ -6,6 +6,7 @@ import Link from 'next/link';
 const BROOKLYN_CENTER = [40.6782, -73.9442];
 
 const HOTSPOTS = [
+  // Brooklyn
   {
     name: 'Brooklyn Navy Yard',
     lat: 40.6994,
@@ -66,8 +67,119 @@ const HOTSPOTS = [
     lng: -73.961,
     hint: '1970s · Puerto Rican community',
   },
+  {
+    name: 'Brooklyn College',
+    lat: 40.6313,
+    lng: -73.9518,
+    hint: '1930s · WPA campus',
+  },
+  {
+    name: 'Fort Greene Park',
+    lat: 40.6908,
+    lng: -73.9746,
+    hint: '1860s · Civil War prison',
+  },
+  {
+    name: 'Brownsville, Pitkin Ave',
+    lat: 40.6629,
+    lng: -73.9119,
+    hint: '1940s · Jewish community',
+  },
+  {
+    name: 'Bay Ridge, Shore Road',
+    lat: 40.6281,
+    lng: -74.0307,
+    hint: '1950s · Norwegian settlement',
+  },
+  // Manhattan
+  {
+    name: 'Harlem, 125th Street',
+    lat: 40.8079,
+    lng: -73.9452,
+    hint: '1920s · Harlem Renaissance',
+  },
+  {
+    name: 'Lower East Side',
+    lat: 40.7153,
+    lng: -73.9863,
+    hint: '1900s · Jewish immigration',
+  },
+  {
+    name: 'Stonewall Inn, Greenwich Village',
+    lat: 40.7335,
+    lng: -74.0021,
+    hint: '1969 · LGBTQ uprising',
+  },
+  {
+    name: 'Ellis Island',
+    lat: 40.6995,
+    lng: -74.0397,
+    hint: '1900s · Immigration gateway',
+  },
+  {
+    name: 'Triangle Shirtwaist Factory',
+    lat: 40.7265,
+    lng: -74.0051,
+    hint: '1911 · Labor tragedy',
+  },
+  {
+    name: 'Seneca Village, Central Park',
+    lat: 40.7791,
+    lng: -73.9697,
+    hint: '1850s · Displaced community',
+  },
+  {
+    name: 'Tin Pan Alley, 28th Street',
+    lat: 40.7459,
+    lng: -73.9896,
+    hint: '1900s · American songwriting',
+  },
+  // Bronx
+  {
+    name: 'Grand Concourse, Bronx',
+    lat: 40.8448,
+    lng: -73.9285,
+    hint: '1930s · Art Deco borough',
+  },
+  {
+    name: 'Hunts Point, South Bronx',
+    lat: 40.8151,
+    lng: -73.8865,
+    hint: '1970s · Community resilience',
+  },
+  {
+    name: 'Yankee Stadium area',
+    lat: 40.8296,
+    lng: -73.9262,
+    hint: '1920s · Baseball cathedral',
+  },
+  // Queens
+  {
+    name: 'Flushing, Main Street',
+    lat: 40.7579,
+    lng: -73.8298,
+    hint: '1980s · Asian immigration wave',
+  },
+  {
+    name: 'Astoria, Steinway Street',
+    lat: 40.7723,
+    lng: -73.9303,
+    hint: '1920s · Greek community',
+  },
+  {
+    name: 'Jackson Heights',
+    lat: 40.7484,
+    lng: -73.8912,
+    hint: '1970s · Latin American roots',
+  },
+  // Staten Island
+  {
+    name: 'St. George Ferry Terminal',
+    lat: 40.6437,
+    lng: -74.0736,
+    hint: '1905 · Gateway to the island',
+  },
 ];
-
 export default function MapPage() {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
@@ -85,6 +197,7 @@ export default function MapPage() {
   const [search, setSearch] = useState('');
   const [searching, setSearching] = useState(false);
   const [showHotspots, setShowHotspots] = useState(true);
+  const [sources, setSources] = useState([]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -102,8 +215,8 @@ export default function MapPage() {
     if (!leafletLoaded || !mapContainer.current || mapRef.current) return;
     const L = window.L;
     const map = L.map(mapContainer.current, {
-      center: BROOKLYN_CENTER,
-      zoom: 13,
+      center: [40.7128, -74.006], // NYC center
+      zoom: 11,
       zoomControl: false,
     });
     L.tileLayer(
@@ -154,6 +267,7 @@ export default function MapPage() {
     setIsPlaying(false);
     setPlayingIntro(false);
     setProgress(0);
+    setSources([]);
 
     try {
       const res = await fetch('/api/story', {
@@ -167,6 +281,7 @@ export default function MapPage() {
       }
       const data = await res.json();
       setStory(data);
+      setSources(data.sources || []);
       return data;
     } catch (err) {
       setError(err.message || 'Could not generate a story. Try another spot.');
@@ -185,7 +300,6 @@ export default function MapPage() {
       geocodeData.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     const data = await fetchStory(address, lat, lng);
     if (!data) return;
-    // Autoplay intro first
     setTimeout(() => {
       if (data.introAudio && introAudioRef.current) {
         introAudioRef.current.play().catch(() => {});
@@ -204,16 +318,15 @@ export default function MapPage() {
     const query = search;
     setSearch('');
     const data = await fetchStory(
-      query + ', Brooklyn, New York',
+      query + ', New York City',
       BROOKLYN_CENTER[0],
       BROOKLYN_CENTER[1],
     );
     setSearching(false);
     if (!data) return;
-    // Try to move map in background
     fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-        query + ' Brooklyn New York',
+        query + ' New York City',
       )}&format=json&limit=1`,
     )
       .then((r) => r.json())
@@ -228,7 +341,6 @@ export default function MapPage() {
         }
       })
       .catch(() => {});
-    // Autoplay
     setTimeout(() => {
       if (data.introAudio && introAudioRef.current) {
         introAudioRef.current.play().catch(() => {});
@@ -296,6 +408,35 @@ export default function MapPage() {
       `}</style>
 
       <div style={{ width: '100vw', height: '100svh', position: 'relative' }}>
+        {story && !loading && (
+          <button
+            onClick={() => {
+              setStory(null);
+              setSources([]);
+              setIsPlaying(false);
+              setPlayingIntro(false);
+              if (audioRef.current) audioRef.current.pause();
+              if (introAudioRef.current) introAudioRef.current.pause();
+            }}
+            style={{
+              position: 'absolute',
+              bottom: '1.5rem',
+              right: '1rem',
+              zIndex: 1001,
+              background: 'rgba(14,14,18,0.96)',
+              border: '1px solid rgba(200,169,110,0.2)',
+              borderRadius: '4px',
+              padding: '0.5rem 1rem',
+              fontFamily: "'DM Mono',monospace",
+              fontSize: '0.6rem',
+              color: 'rgba(200,169,110,0.7)',
+              cursor: 'pointer',
+              letterSpacing: '0.06em',
+            }}
+          >
+            ← back to map
+          </button>
+        )}
         {/* Top bar */}
         <div
           style={{
@@ -342,7 +483,7 @@ export default function MapPage() {
                 textTransform: 'uppercase',
               }}
             >
-              Brooklyn, New York
+              New York City
             </span>
           </div>
           <form
@@ -353,7 +494,7 @@ export default function MapPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search any Brooklyn address, neighborhood, or landmark..."
+              placeholder="Search any NYC address, neighborhood, or landmark..."
               style={{
                 flex: 1,
                 background: 'rgba(20,20,25,0.97)',
@@ -555,7 +696,7 @@ export default function MapPage() {
               border: '1px solid rgba(200,169,110,0.2)',
               borderRadius: '4px',
               padding: '1.25rem 1.75rem',
-              minWidth: '340px',
+              minWidth: '300px',
               maxWidth: '90vw',
             }}
           >
@@ -564,7 +705,7 @@ export default function MapPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                marginBottom: '0.85rem',
+                marginBottom: '0.5rem',
               }}
             >
               {[0, 0.2, 0.4].map((d, i) => (
@@ -590,43 +731,16 @@ export default function MapPage() {
                 Searching the archives...
               </span>
             </div>
-            {[
-              { label: 'NYC Municipal Archives', delay: '0.3s' },
-              { label: 'Brooklyn Daily Eagle, 1841-1955', delay: '1.1s' },
-              { label: 'NYC Landmarks Preservation Commission', delay: '2.0s' },
-              {
-                label: 'Library of Congress Historical Records',
-                delay: '3.1s',
-              },
-              { label: 'OpenStreetMap & Census Bureau', delay: '4.2s' },
-            ].map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  fontFamily: "'DM Mono',monospace",
-                  fontSize: '0.6rem',
-                  color: 'rgba(200,169,110,0.65)',
-                  letterSpacing: '0.03em',
-                  padding: '0.2rem 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  opacity: 0,
-                  animation: `fadeInSource 0.4s ${s.delay} ease forwards`,
-                }}
-              >
-                <div
-                  style={{
-                    width: '4px',
-                    height: '4px',
-                    borderRadius: '50%',
-                    background: 'rgba(200,169,110,0.5)',
-                    flexShrink: 0,
-                  }}
-                />
-                Found: {s.label}
-              </div>
-            ))}
+            <div
+              style={{
+                fontFamily: "'DM Mono',monospace",
+                fontSize: '0.58rem',
+                color: 'rgba(200,169,110,0.4)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              Consulting Tavily · Claude · ElevenLabs
+            </div>
           </div>
         )}
 
@@ -697,7 +811,7 @@ export default function MapPage() {
                   style={{
                     fontFamily: "'DM Mono',monospace",
                     fontSize: '0.57rem',
-                    color: 'rgba(255,255,255,0.65)',
+                    color: 'rgba(255,255,255,0.85)',
                   }}
                 >
                   {story.narrator}
@@ -722,7 +836,7 @@ export default function MapPage() {
                 style={{
                   fontFamily: "'DM Mono',monospace",
                   fontSize: '0.57rem',
-                  color: 'rgba(255,255,255,0.2)',
+                  color: 'rgba(255,255,255,0.8)',
                   marginBottom: '0.75rem',
                 }}
               >
@@ -898,13 +1012,61 @@ export default function MapPage() {
                   marginTop: '0.85rem',
                   fontFamily: "'DM Mono',monospace",
                   fontSize: '0.6rem',
-                  color: 'rgba(255,255,255,0.5)',
+                  color: 'rgba(255,255,255,0.7)',
                   lineHeight: 1.6,
                   letterSpacing: '0.02em',
                 }}
               >
                 {story.context}
               </div>
+
+              {/* Real sources from Tavily */}
+              {sources.length > 0 && (
+                <div
+                  style={{
+                    marginTop: '0.75rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: '0.54rem',
+                      color: 'rgba(200,169,110,0.8)',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      marginBottom: '0.4rem',
+                    }}
+                  >
+                    Sources
+                  </div>
+                  {sources.map((s, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        fontFamily: "'DM Mono',monospace",
+                        fontSize: '0.56rem',
+                        color: 'rgba(255,255,255,0.5)',
+                        padding: '0.15rem 0',
+                        display: 'flex',
+                        gap: '0.5rem',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: 'rgba(200,169,110,0.4)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        ·
+                      </span>
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

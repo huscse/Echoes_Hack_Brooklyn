@@ -33,11 +33,9 @@ export default function CTA() {
           marginBottom: '1.5rem',
         }}
       >
-        Brooklyn has
+        New York has
         <br />
-        <em style={{ fontStyle: 'italic', color: 'var(--gold2)' }}>
-          never been
-        </em>
+        <em>never been</em>
         <br />
         this loud.
       </h2>
