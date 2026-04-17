@@ -5,6 +5,17 @@ import Link from 'next/link';
 
 const BROOKLYN_CENTER = [40.6782, -73.9442];
 
+const LANGUAGES = [
+  { code: 'en', label: 'EN', name: 'English' },
+  { code: 'es', label: 'ES', name: 'Español' },
+  { code: 'zh', label: '中文', name: 'Chinese' },
+  { code: 'ru', label: 'RU', name: 'Русский' },
+  { code: 'fr', label: 'FR', name: 'Français' },
+  { code: 'ko', label: '한국어', name: 'Korean' },
+  { code: 'it', label: 'IT', name: 'Italiano' },
+  { code: 'pt', label: 'PT', name: 'Português' },
+];
+
 const HOTSPOTS = [
   // Brooklyn
   {
@@ -300,6 +311,12 @@ export default function MapPage() {
   const [searching, setSearching] = useState(false);
   const [showHotspots, setShowHotspots] = useState(true);
   const [sources, setSources] = useState([]);
+  const [language, setLanguage] = useState('en');
+  const languageRef = useRef('en');
+  const handleLocationClickRef = useRef(null);
+
+  // Keep refs current every render so stale Leaflet closures always read latest values
+  languageRef.current = language;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -352,7 +369,7 @@ export default function MapPage() {
         handleLocationClick(spot.lat, spot.lng);
       });
     });
-    map.on('click', (e) => handleLocationClick(e.latlng.lat, e.latlng.lng));
+    map.on('click', (e) => handleLocationClickRef.current?.(e.latlng.lat, e.latlng.lng));
     mapRef.current = map;
   }, [leafletLoaded]);
 
@@ -383,7 +400,7 @@ export default function MapPage() {
       const res = await fetch('/api/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, lat, lng }),
+        body: JSON.stringify({ address, lat, lng, language: languageRef.current }),
       });
       if (!res.ok) {
         const errData = await res.json();
@@ -420,6 +437,8 @@ export default function MapPage() {
       }
     }, 400);
   };
+
+  handleLocationClickRef.current = handleLocationClick;
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -635,6 +654,30 @@ export default function MapPage() {
               {searching ? '...' : 'Search →'}
             </button>
           </form>
+          {/* Language selector */}
+          <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem', pointerEvents: 'all', flexWrap: 'wrap' }}>
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                title={lang.name}
+                style={{
+                  background: language === lang.code ? 'rgba(200,169,110,0.18)' : 'transparent',
+                  border: `1px solid ${language === lang.code ? 'rgba(200,169,110,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius: '3px',
+                  padding: '0.25rem 0.55rem',
+                  fontFamily: "'DM Mono',monospace",
+                  fontSize: '0.58rem',
+                  color: language === lang.code ? '#c8a96e' : 'rgba(255,255,255,0.35)',
+                  cursor: 'pointer',
+                  letterSpacing: '0.04em',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Map */}

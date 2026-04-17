@@ -2,8 +2,18 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function generateStory(address, research, summary) {
-  const prompt = `You are writing a short first-person spoken monologue for a location-based audio storytelling app called Echoes.
+const LANGUAGE_NAMES = {
+  en: 'English', es: 'Spanish', zh: 'Mandarin Chinese',
+  ru: 'Russian', fr: 'French', ko: 'Korean', it: 'Italian', pt: 'Portuguese',
+};
+
+export async function generateStory(address, research, summary, language = 'en') {
+  const langName = LANGUAGE_NAMES[language] ?? 'English';
+  const langInstruction = language === 'en'
+    ? ''
+    : `IMPORTANT: Write the entire response — story, intro, title, context, narrator, address_display — in ${langName}. Every field must be in ${langName}. The speech patterns and contractions should feel natural to a native ${langName} speaker, not a translation.\n\n`;
+
+  const prompt = `${langInstruction}You are writing a short first-person spoken monologue for a location-based audio storytelling app called Echoes.
 
 Location: ${address}
 
