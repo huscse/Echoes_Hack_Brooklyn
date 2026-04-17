@@ -214,10 +214,18 @@ export default function MapPage() {
   useEffect(() => {
     if (!leafletLoaded || !mapContainer.current || mapRef.current) return;
     const L = window.L;
+    const NYC_BOUNDS = L.latLngBounds(
+      [40.4774, -74.2591], // SW corner
+      [40.9176, -73.7004], // NE corner
+    );
     const map = L.map(mapContainer.current, {
-      center: [40.7128, -74.006], // NYC center
+      center: [40.7128, -74.006],
       zoom: 11,
       zoomControl: false,
+      minZoom: 10,
+      maxZoom: 18,
+      maxBounds: NYC_BOUNDS,
+      maxBoundsViscosity: 1.0,
     });
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
