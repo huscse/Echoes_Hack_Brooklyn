@@ -99,16 +99,52 @@ const HOTSPOTS = [
     hint: '1920s · Harlem Renaissance',
   },
   {
+    name: 'Apollo Theater',
+    lat: 40.8100,
+    lng: -73.9498,
+    hint: '1930s · Amateur Night legends',
+  },
+  {
     name: 'Lower East Side',
     lat: 40.7153,
     lng: -73.9863,
     hint: '1900s · Jewish immigration',
   },
   {
+    name: 'Chinatown, Mott Street',
+    lat: 40.7158,
+    lng: -73.9970,
+    hint: '1880s · First Chinatown',
+  },
+  {
+    name: 'Little Italy, Mulberry Street',
+    lat: 40.7191,
+    lng: -73.9973,
+    hint: '1900s · Sicilian immigration',
+  },
+  {
     name: 'Stonewall Inn, Greenwich Village',
     lat: 40.7335,
     lng: -74.0021,
     hint: '1969 · LGBTQ uprising',
+  },
+  {
+    name: 'Tompkins Square Park',
+    lat: 40.7264,
+    lng: -73.9818,
+    hint: '1988 · Riot & displacement',
+  },
+  {
+    name: 'Hell\'s Kitchen, 9th Ave',
+    lat: 40.7614,
+    lng: -73.9946,
+    hint: '1930s · Irish working class',
+  },
+  {
+    name: 'Times Square, 42nd Street',
+    lat: 40.7580,
+    lng: -73.9855,
+    hint: '1970s · Before the cleanup',
   },
   {
     name: 'Ellis Island',
@@ -134,6 +170,12 @@ const HOTSPOTS = [
     lng: -73.9896,
     hint: '1900s · American songwriting',
   },
+  {
+    name: 'Washington Heights, 181st St',
+    lat: 40.8487,
+    lng: -73.9378,
+    hint: '1950s · Dominican roots',
+  },
   // Bronx
   {
     name: 'Grand Concourse, Bronx',
@@ -152,6 +194,30 @@ const HOTSPOTS = [
     lat: 40.8296,
     lng: -73.9262,
     hint: '1920s · Baseball cathedral',
+  },
+  {
+    name: 'Charlotte Street, South Bronx',
+    lat: 40.8363,
+    lng: -73.8969,
+    hint: '1977 · Urban abandonment',
+  },
+  {
+    name: 'Cross Bronx Expressway',
+    lat: 40.8468,
+    lng: -73.9017,
+    hint: '1963 · Displacement by design',
+  },
+  {
+    name: 'Pelham Parkway',
+    lat: 40.8574,
+    lng: -73.8592,
+    hint: '1920s · Jewish middle class',
+  },
+  {
+    name: 'Jerome Ave, South Bronx',
+    lat: 40.8202,
+    lng: -73.9100,
+    hint: '1970s · Under the elevated',
   },
   // Queens
   {
@@ -172,12 +238,48 @@ const HOTSPOTS = [
     lng: -73.8912,
     hint: '1970s · Latin American roots',
   },
+  {
+    name: 'Louis Armstrong House, Corona',
+    lat: 40.7550,
+    lng: -73.8631,
+    hint: '1943 · Jazz legend\'s home',
+  },
+  {
+    name: 'St. Albans, Linden Blvd',
+    lat: 40.6879,
+    lng: -73.7700,
+    hint: '1950s · Jazz musicians\' enclave',
+  },
+  {
+    name: 'Rockaway Beach',
+    lat: 40.5820,
+    lng: -73.8120,
+    hint: '1950s · Summer escape',
+  },
+  {
+    name: 'Sunnyside Gardens',
+    lat: 40.7438,
+    lng: -73.9228,
+    hint: '1924 · Planned garden community',
+  },
   // Staten Island
   {
     name: 'St. George Ferry Terminal',
     lat: 40.6437,
     lng: -74.0736,
     hint: '1905 · Gateway to the island',
+  },
+  {
+    name: 'Snug Harbor, Richmond Terrace',
+    lat: 40.6426,
+    lng: -74.1042,
+    hint: '1833 · Sailors\' retirement home',
+  },
+  {
+    name: 'Tottenville, Main Street',
+    lat: 40.5126,
+    lng: -74.2518,
+    hint: '1880s · Oyster industry',
   },
 ];
 export default function MapPage() {
@@ -288,6 +390,7 @@ export default function MapPage() {
         throw new Error(errData.error || 'Failed to generate story');
       }
       const data = await res.json();
+      if (data.introAudio) setPlayingIntro(true);
       setStory(data);
       setSources(data.sources || []);
       return data;
@@ -311,7 +414,6 @@ export default function MapPage() {
     setTimeout(() => {
       if (data.introAudio && introAudioRef.current) {
         introAudioRef.current.play().catch(() => {});
-        setPlayingIntro(true);
       } else if (data.audio && audioRef.current) {
         audioRef.current.play().catch(() => {});
         setIsPlaying(true);
@@ -352,7 +454,6 @@ export default function MapPage() {
     setTimeout(() => {
       if (data.introAudio && introAudioRef.current) {
         introAudioRef.current.play().catch(() => {});
-        setPlayingIntro(true);
       } else if (data.audio && audioRef.current) {
         audioRef.current.play().catch(() => {});
         setIsPlaying(true);
