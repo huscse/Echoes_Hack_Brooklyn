@@ -185,6 +185,14 @@ export default function MapPage() {
 
       const data = await res.json();
       setStory(data);
+
+      // Autoplay after a short delay to let audio element mount
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play();
+          setIsPlaying(true);
+        }
+      }, 500);
     } catch (err) {
       setError(err.message || 'Could not generate a story. Try another spot.');
     } finally {
@@ -194,32 +202,59 @@ export default function MapPage() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!search.trim() || !mapRef.current) return;
-    setSearching(true);
+    if (!search.trim()) return;
+    setSearching(false);
+    setLoading(true);
     setError(null);
+    setStory(null);
+    setIsPlaying(false);
+    setProgress(0);
+    const query = search;
+    setSearch('');
 
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-          search + ', Brooklyn, New York',
-        )}&format=json&limit=1`,
-      );
-      const data = await res.json();
-      if (!data.length) {
-        setError('Location not found. Try a street name or neighborhood.');
-        setSearching(false);
-        return;
-      }
-      const { lat, lon } = data[0];
-      mapRef.current.setView([parseFloat(lat), parseFloat(lon)], 16, {
-        animate: true,
+      const res = await fetch('/api/story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: query + ', Brooklyn, New York',
+          lat: BROOKLYN_CENTER[0],
+          lng: BROOKLYN_CENTER[1],
+        }),
       });
-      handleLocationClick(parseFloat(lat), parseFloat(lon));
-    } catch {
-      setError('Search failed. Try clicking the map instead.');
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to generate story');
+      }
+
+      const data = await res.json();
+      setStory(data);
+
+      // Try to geocode in background to move the map
+      fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          query + ' Brooklyn New York',
+        )}&format=json&limit=1`,
+      )
+        .then((r) => r.json())
+        .then((geo) => {
+          if (geo.length > 0 && mapRef.current) {
+            mapRef.current.setView(
+              [parseFloat(geo[0].lat), parseFloat(geo[0].lon)],
+              16,
+              { animate: true },
+            );
+            placeMarker(parseFloat(geo[0].lat), parseFloat(geo[0].lon));
+          }
+        })
+        .catch(() => {});
+    } catch (err) {
+      setError(
+        err.message || 'Could not generate a story. Try another location.',
+      );
     } finally {
-      setSearching(false);
-      setSearch('');
+      setLoading(false);
     }
   };
 
@@ -623,11 +658,23 @@ export default function MapPage() {
                   style={{
                     fontFamily: "'DM Mono',monospace",
                     fontSize: '0.57rem',
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'rgba(255,255,255,0.65)',
                   }}
                 >
                   {story.narrator}
                 </span>
+              </div>
+
+              <div
+                style={{
+                  fontFamily: "'Cormorant Garamond',serif",
+                  fontSize: '1.3rem',
+                  fontWeight: 300,
+                  color: '#f0ede8',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {story.title}
               </div>
               <div
                 style={{
@@ -765,6 +812,19 @@ export default function MapPage() {
                   onPause={() => setIsPlaying(false)}
                 />
               )}
+
+              <div
+                style={{
+                  marginTop: '0.75rem',
+                  fontFamily: "'DM Mono',monospace",
+                  fontSize: '0.6rem',
+                  color: 'rgba(255,255,255,0.6)',
+                  lineHeight: 1.6,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {story.context}
+              </div>
             </div>
           )}
         </div>
