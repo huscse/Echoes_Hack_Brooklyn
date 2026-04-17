@@ -308,7 +308,6 @@ export default function MapPage() {
   const [error, setError] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingIntro, setPlayingIntro] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [search, setSearch] = useState('');
   const [searching, setSearching] = useState(false);
@@ -398,7 +397,6 @@ export default function MapPage() {
     setStory(null);
     setIsPlaying(false);
     setPlayingIntro(false);
-    setProgress(0);
     setSources([]);
 
     try {
@@ -505,12 +503,6 @@ export default function MapPage() {
     setIsPlaying(!isPlaying);
   };
 
-  const handleTimeUpdate = () => {
-    if (!audioRef.current) return;
-    setProgress(
-      (audioRef.current.currentTime / audioRef.current.duration) * 100 || 0,
-    );
-  };
 
   const handleSeek = (e) => {
     if (!audioRef.current) return;
@@ -549,7 +541,7 @@ export default function MapPage() {
   };
 
   const startWaveform = () => {
-    if (!audioRef.current || !canvasRef.current) return;
+    if (!audioRef.current) return;
     const audioEl = audioRef.current;
     if (!waveformRef.current || waveformRef.current.audioEl !== audioEl) {
       waveformRef.current?.audioCtx?.close();
@@ -565,7 +557,8 @@ export default function MapPage() {
     if (waveformRef.current.audioCtx.state === 'suspended') {
       waveformRef.current.audioCtx.resume();
     }
-    drawBars();
+    // canvas may not be mounted yet (intro still showing) — drawBars handles that
+    if (canvasRef.current) drawBars();
   };
 
   const stopWaveform = () => {
@@ -578,6 +571,14 @@ export default function MapPage() {
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
   };
+
+  // When the canvas mounts (intro ends → !playingIntro renders the canvas),
+  // kick off the draw loop if audio is already playing.
+  useEffect(() => {
+    if (!playingIntro && isPlaying && waveformRef.current && canvasRef.current && !animFrameRef.current) {
+      drawBars();
+    }
+  }, [playingIntro, isPlaying]);
 
   const isAnyPlaying = isPlaying || playingIntro;
 
@@ -1043,11 +1044,10 @@ export default function MapPage() {
                 <audio
                   ref={audioRef}
                   src={story.audio}
-                  onTimeUpdate={handleTimeUpdate}
+
                   onEnded={() => {
                     setIsPlaying(false);
-                    setProgress(0);
-                    stopWaveform();
+                                    stopWaveform();
                   }}
                   onPlay={() => {
                     setIsPlaying(true);
@@ -1211,37 +1211,19 @@ export default function MapPage() {
                       <canvas
                         ref={canvasRef}
                         width={512}
-                        height={40}
+                        height={44}
                         style={{
                           width: '100%',
-                          height: '40px',
+                          height: '44px',
                           display: 'block',
                           borderRadius: '2px',
                         }}
                       />
                       <div
                         style={{
-                          height: '1px',
-                          background: 'rgba(255,255,255,0.06)',
-                          borderRadius: '1px',
-                          overflow: 'hidden',
-                          marginTop: '4px',
-                          marginBottom: '4px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: '100%',
-                            background: 'rgba(200,169,110,0.5)',
-                            width: `${progress}%`,
-                            transition: 'width 0.1s linear',
-                          }}
-                        />
-                      </div>
-                      <div
-                        style={{
                           display: 'flex',
                           justifyContent: 'space-between',
+                          marginTop: '5px',
                         }}
                       >
                         <span
