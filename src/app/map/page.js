@@ -111,7 +111,7 @@ const HOTSPOTS = [
   },
   {
     name: 'Apollo Theater',
-    lat: 40.8100,
+    lat: 40.81,
     lng: -73.9498,
     hint: '1930s · Amateur Night legends',
   },
@@ -124,7 +124,7 @@ const HOTSPOTS = [
   {
     name: 'Chinatown, Mott Street',
     lat: 40.7158,
-    lng: -73.9970,
+    lng: -73.997,
     hint: '1880s · First Chinatown',
   },
   {
@@ -146,14 +146,14 @@ const HOTSPOTS = [
     hint: '1988 · Riot & displacement',
   },
   {
-    name: 'Hell\'s Kitchen, 9th Ave',
+    name: "Hell's Kitchen, 9th Ave",
     lat: 40.7614,
     lng: -73.9946,
     hint: '1930s · Irish working class',
   },
   {
     name: 'Times Square, 42nd Street',
-    lat: 40.7580,
+    lat: 40.758,
     lng: -73.9855,
     hint: '1970s · Before the cleanup',
   },
@@ -227,7 +227,7 @@ const HOTSPOTS = [
   {
     name: 'Jerome Ave, South Bronx',
     lat: 40.8202,
-    lng: -73.9100,
+    lng: -73.91,
     hint: '1970s · Under the elevated',
   },
   // Queens
@@ -251,20 +251,20 @@ const HOTSPOTS = [
   },
   {
     name: 'Louis Armstrong House, Corona',
-    lat: 40.7550,
+    lat: 40.755,
     lng: -73.8631,
-    hint: '1943 · Jazz legend\'s home',
+    hint: "1943 · Jazz legend's home",
   },
   {
     name: 'St. Albans, Linden Blvd',
     lat: 40.6879,
-    lng: -73.7700,
-    hint: '1950s · Jazz musicians\' enclave',
+    lng: -73.77,
+    hint: "1950s · Jazz musicians' enclave",
   },
   {
     name: 'Rockaway Beach',
-    lat: 40.5820,
-    lng: -73.8120,
+    lat: 40.582,
+    lng: -73.812,
     hint: '1950s · Summer escape',
   },
   {
@@ -284,7 +284,7 @@ const HOTSPOTS = [
     name: 'Snug Harbor, Richmond Terrace',
     lat: 40.6426,
     lng: -74.1042,
-    hint: '1833 · Sailors\' retirement home',
+    hint: "1833 · Sailors' retirement home",
   },
   {
     name: 'Tottenville, Main Street',
@@ -299,6 +299,9 @@ export default function MapPage() {
   const markerRef = useRef(null);
   const audioRef = useRef(null);
   const introAudioRef = useRef(null);
+  const canvasRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const waveformRef = useRef(null); // { audioCtx, analyser }
 
   const [story, setStory] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -369,7 +372,9 @@ export default function MapPage() {
         handleLocationClick(spot.lat, spot.lng);
       });
     });
-    map.on('click', (e) => handleLocationClickRef.current?.(e.latlng.lat, e.latlng.lng));
+    map.on('click', (e) =>
+      handleLocationClickRef.current?.(e.latlng.lat, e.latlng.lng),
+    );
     mapRef.current = map;
   }, [leafletLoaded]);
 
@@ -400,7 +405,12 @@ export default function MapPage() {
       const res = await fetch('/api/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, lat, lng, language: languageRef.current }),
+        body: JSON.stringify({
+          address,
+          lat,
+          lng,
+          language: languageRef.current,
+        }),
       });
       if (!res.ok) {
         const errData = await res.json();
@@ -507,6 +517,66 @@ export default function MapPage() {
     const rect = e.currentTarget.getBoundingClientRect();
     audioRef.current.currentTime =
       ((e.clientX - rect.left) / rect.width) * audioRef.current.duration;
+  };
+
+  const drawBars = () => {
+    if (!canvasRef.current || !waveformRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const { analyser } = waveformRef.current;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const frame = () => {
+      animFrameRef.current = requestAnimationFrame(frame);
+      analyser.getByteFrequencyData(dataArray);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const totalBars = bufferLength;
+      const barW = canvas.width / totalBars;
+      for (let i = 0; i < totalBars; i++) {
+        const v = dataArray[i] / 255;
+        const barH = Math.max(2, v * canvas.height);
+        const alpha = 0.25 + v * 0.75;
+        ctx.fillStyle = `rgba(200,169,110,${alpha})`;
+        ctx.fillRect(
+          i * barW + 1,
+          canvas.height - barH,
+          Math.max(1, barW - 2),
+          barH,
+        );
+      }
+    };
+    frame();
+  };
+
+  const startWaveform = () => {
+    if (!audioRef.current || !canvasRef.current) return;
+    const audioEl = audioRef.current;
+    if (!waveformRef.current || waveformRef.current.audioEl !== audioEl) {
+      waveformRef.current?.audioCtx?.close();
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.8;
+      const source = audioCtx.createMediaElementSource(audioEl);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      waveformRef.current = { audioCtx, analyser, source, audioEl };
+    }
+    if (waveformRef.current.audioCtx.state === 'suspended') {
+      waveformRef.current.audioCtx.resume();
+    }
+    drawBars();
+  };
+
+  const stopWaveform = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
   };
 
   const isAnyPlaying = isPlaying || playingIntro;
@@ -655,20 +725,38 @@ export default function MapPage() {
             </button>
           </form>
           {/* Language selector */}
-          <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem', pointerEvents: 'all', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.4rem',
+              marginTop: '0.6rem',
+              pointerEvents: 'all',
+              flexWrap: 'wrap',
+            }}
+          >
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => setLanguage(lang.code)}
                 title={lang.name}
                 style={{
-                  background: language === lang.code ? 'rgba(200,169,110,0.18)' : 'transparent',
-                  border: `1px solid ${language === lang.code ? 'rgba(200,169,110,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                  background:
+                    language === lang.code
+                      ? 'rgba(200,169,110,0.18)'
+                      : 'transparent',
+                  border: `1px solid ${
+                    language === lang.code
+                      ? 'rgba(200,169,110,0.5)'
+                      : 'rgba(255,255,255,0.1)'
+                  }`,
                   borderRadius: '3px',
                   padding: '0.25rem 0.55rem',
                   fontFamily: "'DM Mono',monospace",
                   fontSize: '0.58rem',
-                  color: language === lang.code ? '#c8a96e' : 'rgba(255,255,255,0.35)',
+                  color:
+                    language === lang.code
+                      ? '#c8a96e'
+                      : 'rgba(255,255,255,0.35)',
                   cursor: 'pointer',
                   letterSpacing: '0.04em',
                   transition: 'all 0.15s',
@@ -764,7 +852,7 @@ export default function MapPage() {
                   style={{
                     fontFamily: "'DM Mono',monospace",
                     fontSize: '0.57rem',
-                    color: 'rgba(200,169,110,0.55)',
+                    color: 'rgba(238, 200, 130, 0.55)',
                     marginTop: '1px',
                   }}
                 >
@@ -937,7 +1025,6 @@ export default function MapPage() {
         >
           {story && (
             <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-
               {/* Hidden audio elements — always mounted so they can play */}
               {story.introAudio && (
                 <audio
@@ -957,9 +1044,19 @@ export default function MapPage() {
                   ref={audioRef}
                   src={story.audio}
                   onTimeUpdate={handleTimeUpdate}
-                  onEnded={() => { setIsPlaying(false); setProgress(0); }}
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => {
+                    setIsPlaying(false);
+                    setProgress(0);
+                    stopWaveform();
+                  }}
+                  onPlay={() => {
+                    setIsPlaying(true);
+                    startWaveform();
+                  }}
+                  onPause={() => {
+                    setIsPlaying(false);
+                    stopWaveform();
+                  }}
                 />
               )}
 
@@ -993,19 +1090,48 @@ export default function MapPage() {
                       gap: '0.5rem',
                     }}
                   >
-                    <span style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c8a96e' }}>
+                    <span
+                      style={{
+                        fontFamily: "'DM Mono',monospace",
+                        fontSize: '0.6rem',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: '#c8a96e',
+                      }}
+                    >
                       {story.era}
                     </span>
-                    <span style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.57rem', color: 'rgba(255,255,255,0.85)' }}>
+                    <span
+                      style={{
+                        fontFamily: "'DM Mono',monospace",
+                        fontSize: '0.57rem',
+                        color: 'rgba(255,255,255,0.85)',
+                      }}
+                    >
                       {story.narrator}
                     </span>
                   </div>
 
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.3rem', fontWeight: 300, color: '#f0ede8', marginBottom: '0.35rem' }}>
+                  <div
+                    style={{
+                      fontFamily: "'Cormorant Garamond',serif",
+                      fontSize: '1.3rem',
+                      fontWeight: 300,
+                      color: '#f0ede8',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     {story.title}
                   </div>
 
-                  <div style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.57rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.75rem' }}>
+                  <div
+                    style={{
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: '0.57rem',
+                      color: 'rgba(255,255,255,0.8)',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
                     {story.address_display}
                   </div>
 
@@ -1024,49 +1150,176 @@ export default function MapPage() {
                     &ldquo;{story.story}&rdquo;
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem',
+                    }}
+                  >
                     <button
                       onClick={togglePlay}
                       style={{
-                        width: '38px', height: '38px', borderRadius: '50%',
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
                         border: '1px solid rgba(200,169,110,0.35)',
                         background: 'rgba(200,169,110,0.08)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0,
                       }}
                     >
                       {isAnyPlaying ? (
                         <div style={{ display: 'flex', gap: '3px' }}>
-                          <div style={{ width: '3px', height: '11px', background: '#c8a96e', borderRadius: '1px' }} />
-                          <div style={{ width: '3px', height: '11px', background: '#c8a96e', borderRadius: '1px' }} />
+                          <div
+                            style={{
+                              width: '3px',
+                              height: '11px',
+                              background: '#c8a96e',
+                              borderRadius: '1px',
+                            }}
+                          />
+                          <div
+                            style={{
+                              width: '3px',
+                              height: '11px',
+                              background: '#c8a96e',
+                              borderRadius: '1px',
+                            }}
+                          />
                         </div>
                       ) : (
-                        <div style={{ width: 0, height: 0, borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '9px solid #c8a96e', marginLeft: '2px' }} />
+                        <div
+                          style={{
+                            width: 0,
+                            height: 0,
+                            borderTop: '5px solid transparent',
+                            borderBottom: '5px solid transparent',
+                            borderLeft: '9px solid #c8a96e',
+                            marginLeft: '2px',
+                          }}
+                        />
                       )}
                     </button>
-                    <div style={{ flex: 1, cursor: 'pointer' }} onClick={handleSeek}>
-                      <div style={{ height: '2px', background: 'rgba(255,255,255,0.08)', borderRadius: '1px', overflow: 'hidden', marginBottom: '5px' }}>
-                        <div style={{ height: '100%', background: '#c8a96e', width: `${progress}%`, transition: 'width 0.1s linear' }} />
+                    <div
+                      style={{ flex: 1, cursor: 'pointer' }}
+                      onClick={handleSeek}
+                    >
+                      <canvas
+                        ref={canvasRef}
+                        width={512}
+                        height={40}
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          display: 'block',
+                          borderRadius: '2px',
+                        }}
+                      />
+                      <div
+                        style={{
+                          height: '1px',
+                          background: 'rgba(255,255,255,0.06)',
+                          borderRadius: '1px',
+                          overflow: 'hidden',
+                          marginTop: '4px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            background: 'rgba(200,169,110,0.5)',
+                            width: `${progress}%`,
+                            transition: 'width 0.1s linear',
+                          }}
+                        />
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.54rem', color: 'rgba(255,255,255,0.22)' }}>{story.era}</span>
-                        <span style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.54rem', color: 'rgba(255,255,255,0.22)' }}>{isPlaying ? 'playing...' : 'tap to play'}</span>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: "'DM Mono',monospace",
+                            fontSize: '0.54rem',
+                            color: 'rgba(255,255,255,0.22)',
+                          }}
+                        >
+                          {story.era}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "'DM Mono',monospace",
+                            fontSize: '0.54rem',
+                            color: 'rgba(255,255,255,0.22)',
+                          }}
+                        >
+                          {isPlaying ? 'playing...' : 'tap to play'}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '0.85rem', fontFamily: "'DM Mono',monospace", fontSize: '0.6rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, letterSpacing: '0.02em' }}>
+                  <div
+                    style={{
+                      marginTop: '0.85rem',
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: '0.6rem',
+                      color: 'rgba(255,255,255,0.7)',
+                      lineHeight: 1.6,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
                     {story.context}
                   </div>
 
                   {sources.length > 0 && (
-                    <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.54rem', color: 'rgba(200,169,110,0.8)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                    <div
+                      style={{
+                        marginTop: '0.75rem',
+                        paddingTop: '0.75rem',
+                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "'DM Mono',monospace",
+                          fontSize: '0.54rem',
+                          color: 'rgba(200,169,110,0.8)',
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          marginBottom: '0.4rem',
+                        }}
+                      >
                         Sources
                       </div>
                       {sources.map((s, i) => (
-                        <div key={i} style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.56rem', color: 'rgba(255,255,255,0.5)', padding: '0.15rem 0', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                          <span style={{ color: 'rgba(200,169,110,0.4)', flexShrink: 0 }}>·</span>
+                        <div
+                          key={i}
+                          style={{
+                            fontFamily: "'DM Mono',monospace",
+                            fontSize: '0.56rem',
+                            color: 'rgba(255,255,255,0.5)',
+                            padding: '0.15rem 0',
+                            display: 'flex',
+                            gap: '0.5rem',
+                            alignItems: 'flex-start',
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: 'rgba(200,169,110,0.4)',
+                              flexShrink: 0,
+                            }}
+                          >
+                            ·
+                          </span>
                           {s}
                         </div>
                       ))}
