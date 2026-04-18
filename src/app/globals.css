@@ -238,3 +238,108 @@ html {
     margin: 0 1.5rem;
   }
 }
+.archive-scan-line {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  margin-top: 0.2rem;
+  overflow: hidden;
+}
+
+.archive-scan-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(200,169,110,0.25),
+    transparent
+  );
+}
+
+.archive-scan-glow {
+  position: absolute;
+  top: 50%;
+  left: -25%;
+  width: 30%;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(232,201,142,0.9),
+    transparent
+  );
+  filter: blur(2px);
+  animation: scanMove 1.8s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+  0% {
+    left: -25%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes dotWave {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.4);
+    box-shadow: 0 0 6px rgba(200, 169, 110, 0.8);
+  }
+  60% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+}
+.messenger-typing {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.messenger-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #e8c98e, #c8a96e 60%, #7a6438);
+  opacity: 0.4;
+  transform: translateY(0);
+  animation: messengerBounce 1.15s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(200, 169, 110, 0.4);
+}
+
+@keyframes messengerBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-7px);
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(200, 169, 110, 0.8);
+  }
+}
