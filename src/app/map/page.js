@@ -345,9 +345,9 @@ export default function MapPage() {
     );
     const map = L.map(mapContainer.current, {
       center: [40.7128, -74.006],
-      zoom: 11,
+      zoom: 12,
       zoomControl: false,
-      minZoom: 10,
+      minZoom: 11,
       maxZoom: 18,
       maxBounds: NYC_BOUNDS,
       maxBoundsViscosity: 1.0,
@@ -531,14 +531,18 @@ export default function MapPage() {
       const geoRes = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           query + ' New York City',
-        )}&format=json&limit=1`,
+        )}&format=json&limit=1&bounded=1&viewbox=-74.2591,40.4774,-73.7004,40.9176`,
       );
       const geo = await geoRes.json();
       if (geo.length > 0) {
-        lat = parseFloat(geo[0].lat);
-        lng = parseFloat(geo[0].lon);
-        mapRef.current?.setView([lat, lng], 16, { animate: true });
-        placeMarker(lat, lng);
+        const gLat = parseFloat(geo[0].lat);
+        const gLng = parseFloat(geo[0].lon);
+        // Only use result if it's actually within NYC bounds
+        if (gLat >= 40.4774 && gLat <= 40.9176 && gLng >= -74.2591 && gLng <= -73.7004) {
+          lat = gLat; lng = gLng;
+          mapRef.current?.setView([lat, lng], 16, { animate: true });
+          placeMarker(lat, lng);
+        }
       }
     } catch {}
 
