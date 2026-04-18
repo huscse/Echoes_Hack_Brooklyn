@@ -600,28 +600,42 @@ export default function MapPage() {
     setSearching(true);
     setSearch('');
 
-    // Geocode first so the map moves and marker appears immediately
     let lat = BROOKLYN_CENTER[0];
     let lng = BROOKLYN_CENTER[1];
+    let geocoded = false;
+
     try {
       const geoRes = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           query + ' New York City',
-        )}&format=json&limit=1`,
+        )}&format=json&limit=1&bounded=1&viewbox=-74.2591,40.4774,-73.7004,40.9176`,
       );
       const geo = await geoRes.json();
       if (geo.length > 0) {
-        lat = parseFloat(geo[0].lat);
-        lng = parseFloat(geo[0].lon);
-        mapRef.current?.setView([lat, lng], 16, { animate: true });
-        placeMarker(lat, lng);
+        const gLat = parseFloat(geo[0].lat);
+        const gLng = parseFloat(geo[0].lon);
+        if (gLat >= 40.4774 && gLat <= 40.9176 && gLng >= -74.2591 && gLng <= -73.7004) {
+          lat = gLat; lng = gLng; geocoded = true;
+          mapRef.current?.setView([lat, lng], 16, { animate: true });
+          placeMarker(lat, lng);
+        }
       }
     } catch {}
 
     const data = await fetchStory(query + ', New York City', lat, lng);
     setSearching(false);
     if (!data) return;
-    addToTrail(lat, lng);
+
+    // If geocoding failed, navigate using coordinates returned by the story API
+    if (!geocoded && data.coordinates?.lat && data.coordinates?.lng) {
+      const { lat: sLat, lng: sLng } = data.coordinates;
+      mapRef.current?.setView([sLat, sLng], 16, { animate: true });
+      placeMarker(sLat, sLng);
+      addToTrail(sLat, sLng);
+    } else {
+      addToTrail(lat, lng);
+    }
+
     setTimeout(() => {
       if (data.introAudio && introAudioRef.current) {
         introAudioRef.current.play().catch(() => {});
