@@ -452,32 +452,30 @@ export default function MapPage() {
     e.preventDefault();
     if (!search.trim()) return;
     setSearching(true);
-    const query = search;
+    const query = search.trim();
     setSearch('');
-    const data = await fetchStory(
-      query + ', New York City',
-      BROOKLYN_CENTER[0],
-      BROOKLYN_CENTER[1],
-    );
+
+    // Geocode first so the map moves and marker appears immediately
+    let lat = BROOKLYN_CENTER[0];
+    let lng = BROOKLYN_CENTER[1];
+    try {
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          query + ' New York City',
+        )}&format=json&limit=1`,
+      );
+      const geo = await geoRes.json();
+      if (geo.length > 0) {
+        lat = parseFloat(geo[0].lat);
+        lng = parseFloat(geo[0].lon);
+        mapRef.current?.setView([lat, lng], 16, { animate: true });
+        placeMarker(lat, lng);
+      }
+    } catch {}
+
+    const data = await fetchStory(query + ', New York City', lat, lng);
     setSearching(false);
     if (!data) return;
-    fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-        query + ' New York City',
-      )}&format=json&limit=1`,
-    )
-      .then((r) => r.json())
-      .then((geo) => {
-        if (geo.length > 0 && mapRef.current) {
-          mapRef.current.setView(
-            [parseFloat(geo[0].lat), parseFloat(geo[0].lon)],
-            16,
-            { animate: true },
-          );
-          placeMarker(parseFloat(geo[0].lat), parseFloat(geo[0].lon));
-        }
-      })
-      .catch(() => {});
     setTimeout(() => {
       if (data.introAudio && introAudioRef.current) {
         introAudioRef.current.play().catch(() => {});
