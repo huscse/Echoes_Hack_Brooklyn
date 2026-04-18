@@ -990,68 +990,88 @@ export default function MapPage() {
             />
           </div>
         )}
-
-        {/* Loading */}
-        {loading && (
+{loading && (
+  <div
+    style={{
+      position: 'absolute',
+      bottom: '2rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 1000,
+      background: 'rgba(14,14,18,0.97)',
+      border: '1px solid rgba(200,169,110,0.2)',
+      borderRadius: '4px',
+      padding: '1.25rem 1.75rem',
+      minWidth: '300px',
+      maxWidth: '90vw',
+    }}
+  >
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        marginBottom: '0.5rem',
+        width: '100%',
+      }}
+    >
+      <div style={{ display: 'flex', gap: '0.35rem' }}>
+        {[0, 1, 2].map((i) => (
           <div
+            key={`left-${i}`}
             style={{
-              position: 'absolute',
-              bottom: '2rem',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 1000,
-              background: 'rgba(14,14,18,0.97)',
-              border: '1px solid rgba(200,169,110,0.2)',
-              borderRadius: '4px',
-              padding: '1.25rem 1.75rem',
-              minWidth: '300px',
-              maxWidth: '90vw',
+              width: '5px',
+              height: '5px',
+              borderRadius: '50%',
+              background: '#c8a96e',
+              animation: `dotWave 1.2s ease-in-out ${i * 0.2}s infinite`,
             }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '0.5rem',
-              }}
-            >
-              {[0, 0.2, 0.4].map((d, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: '5px',
-                    height: '5px',
-                    borderRadius: '50%',
-                    background: '#c8a96e',
-                    animation: `loadingPulse 1s ${d}s infinite`,
-                  }}
-                />
-              ))}
-              <span
-                style={{
-                  fontFamily: "'DM Mono',monospace",
-                  fontSize: '0.65rem',
-                  letterSpacing: '0.08em',
-                  color: 'rgba(255,255,255,0.45)',
-                }}
-              >
-                Searching the archives...
-              </span>
-            </div>
-            <div
-              style={{
-                fontFamily: "'DM Mono',monospace",
-                fontSize: '0.58rem',
-                color: 'rgba(200,169,110,0.4)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              Consulting Tavily · Claude · ElevenLabs
-            </div>
-          </div>
-        )}
+          />
+        ))}
+      </div>
 
+      <span
+        style={{
+          fontFamily: "'DM Mono',monospace",
+          fontSize: '0.65rem',
+          letterSpacing: '0.08em',
+          color: 'rgba(255,255,255,0.45)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Searching the archives
+      </span>
+
+      <div style={{ display: 'flex', gap: '0.35rem' }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={`right-${i}`}
+            style={{
+              width: '5px',
+              height: '5px',
+              borderRadius: '50%',
+              background: '#c8a96e',
+              animation: `dotWave 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+
+    <div
+      style={{
+        fontFamily: "'DM Mono',monospace",
+        fontSize: '0.58rem',
+        color: 'rgba(200,169,110,0.4)',
+        letterSpacing: '0.04em',
+        marginTop: '0.35rem',
+      }}
+    >
+      Consulting Tavily · Claude · ElevenLabs
+    </div>
+  </div>
+)}
         {/* Error */}
         {error && !loading && (
           <div
