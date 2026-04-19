@@ -165,7 +165,7 @@ export default function Voices() {
                 fontFamily: "'DM Mono',monospace",
                 fontSize: '0.68rem',
                 letterSpacing: '0.06em',
-                color: 'rgba(255,255,255,0.15)',
+                color: 'rgba(255,255,255,0.7)',
                 cursor: 'default',
                 transition: 'color .3s',
               }}
