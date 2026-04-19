@@ -66,12 +66,12 @@ graph TD
     classDef ui fill:#1a1a1f,stroke:#e8c98e,stroke-width:1px,color:#f0ede8
     classDef deploy fill:#111114,stroke:#7a7672,stroke-dasharray:5,color:#7a7672
 
-    U(["👤 User"]):::user
+    U(["User"]):::user
     U --> I1 & I2 & I3
 
-    I1["🗺️ Map Tap"]:::input
+    I1["Map Tap"]:::input
     I2["⌨️ Text Search"]:::input
-    I3["🎙️ Voice"]:::input
+    I3["Voice"]:::input
 
     I3 --> MR["MediaRecorder API"]:::map
     MR --> A2["/api/transcribe"]:::route
