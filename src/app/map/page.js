@@ -771,6 +771,7 @@ export default function MapPage() {
         .hotspot-marker:hover .hotspot-label{display:block}
         input::placeholder{color:rgba(255,255,255,0.25)}
         input:focus{border-color:rgba(200,169,110,0.5)!important;outline:none}
+        .lang-scroll::-webkit-scrollbar{display:none}
         @media (max-width:640px) {
           .story-panel{max-height:72svh;overflow-y:auto;padding-bottom:3.5rem!important}
           .story-two-col{flex-direction:column!important}
@@ -934,12 +935,18 @@ export default function MapPage() {
           </form>
           {/* Language selector */}
           <div
+            className="lang-scroll"
             style={{
               display: 'flex',
               gap: '0.4rem',
               marginTop: '0.6rem',
               pointerEvents: 'all',
-              flexWrap: 'wrap',
+              overflowX: 'auto',
+              flexWrap: 'nowrap',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              paddingBottom: '2px',
             }}
           >
             {LANGUAGES.map((lang) => (
