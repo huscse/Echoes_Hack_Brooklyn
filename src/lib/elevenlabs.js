@@ -49,7 +49,15 @@ export async function generateVoice(text, voiceStyle) {
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`ElevenLabs error: ${err}`);
+    try {
+      const parsed = JSON.parse(err);
+      if (parsed?.detail?.status === 'quota_exceeded') {
+        throw new Error('Voice credits are currently exhausted. Try again later.');
+      }
+    } catch (e) {
+      if (e.message.includes('Voice credits')) throw e;
+    }
+    throw new Error(`Voice generation failed (${response.status}). Try again later.`);
   }
 
   const audioBuffer = await response.arrayBuffer();
